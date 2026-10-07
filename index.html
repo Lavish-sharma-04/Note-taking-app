@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NoteNest Ultra - World Class Rich Text AI Canvas</title>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- HTML2PDF Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- Custom Glow Interactive Cursor Trail -->
+  <div id="cursor-glow"></div>
+
+  <!-- Interactive 3D Background Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app-container">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <i class="fa-solid fa-feather-pointed logo-icon"></i>
+        <div class="logo-text">
+          <span>NoteNest</span>
+          <small>ULTRA</small>
+        </div>
+      </div>
+
+      <button id="btn-new-note" class="primary-btn glow-effect">
+        <i class="fa-solid fa-plus"></i>
+        <span>Create New Note</span>
+      </button>
+
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-input" placeholder="Search notes instantly..."/>
+      </div>
+
+      <!-- Folders Navigation Section -->
+      <div class="nav-section">
+        <span class="section-title">Folders</span>
+        <ul id="folder-list">
+          <li class="folder-item active" data-folder="all">
+            <div class="folder-info">
+              <i class="fa-solid fa-layer-group"></i>
+              <span>All Notes</span>
+            </div>
+            <span class="folder-badge" id="count-all">0</span>
+          </li>
+          <li class="folder-item" data-folder="personal">
+            <div class="folder-info">
+              <i class="fa-solid fa-user"></i>
+              <span>Personal</span>
+            </div>
+            <span class="folder-badge" id="count-personal">0</span>
+          </li>
+          <li class="folder-item" data-folder="work">
+            <div class="folder-info">
+              <i class="fa-solid fa-briefcase"></i>
+              <span>Work</span>
+            </div>
+            <span class="folder-badge" id="count-work">0</span>
+          </li>
+          <li class="folder-item" data-folder="ideas">
+            <div class="folder-info">
+              <i class="fa-solid fa-lightbulb"></i>
+              <span>Ideas</span>
+            </div>
+            <span class="folder-badge" id="count-ideas">0</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="btn-open-drawer" class="secondary-btn">
+          <i class="fa-solid fa-folder-open"></i> Open Notes Drawer
+        </button>
+      </div>
+    </aside>
+
+    <!-- Full Width Main Canvas Editor -->
+    <main class="editor-panel">
+      
+      <!-- Top Primary Action Bar -->
+      <div class="editor-toolbar top-bar">
+        <div class="editor-meta">
+          <div class="folder-select-wrapper">
+            <i class="fa-solid fa-folder"></i>
+            <select id="note-folder-select" title="Assign Folder">
+              <option value="none">-- Select Folder --</option>
+              <option value="personal">Personal</option>
+              <option value="work">Work</option>
+              <option value="ideas">Ideas</option>
+            </select>
+          </div>
+          <span class="status-indicator" id="save-status"><i class="fa-solid fa-circle-check"></i> Ready</span>
+        </div>
+
+        <div class="editor-actions">
+          <button id="btn-preview-note" title="Preview Mode"><i class="fa-solid fa-eye"></i> <span>Preview</span></button>
+          <button id="btn-export-pdf" class="pdf-btn" title="Download PDF"><i class="fa-solid fa-file-pdf"></i> <span>PDF Export</span></button>
+          <button id="btn-delete-note" class="danger-btn icon-action-btn" title="Delete Note"><i class="fa-solid fa-trash"></i></button>
+          <button id="btn-save-note" class="save-btn glow-effect">
+            <i class="fa-solid fa-floppy-disk"></i> <span>Save Note</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Selection-Based Formatting Toolbar -->
+      <div class="rich-toolbar">
+        <div class="format-btn-group">
+          <button class="fmt-btn" id="fmt-bold" title="Bold Selected Text"><i class="fa-solid fa-bold"></i></button>
+          <button class="fmt-btn" id="fmt-italic" title="Italic Selected Text"><i class="fa-solid fa-italic"></i></button>
+          <button class="fmt-btn" id="fmt-underline" title="Underline Selected Text"><i class="fa-solid fa-underline"></i></button>
+        </div>
+
+        <div class="v-divider"></div>
+
+        <div class="tool-group">
+          <select id="font-style-select" title="Font Family for Selection">
+            <option value="'Plus Jakarta Sans', sans-serif">Jakarta Sans</option>
+            <option value="'Inter', sans-serif">Inter Clean</option>
+            <option value="'Roboto', sans-serif">Roboto Modern</option>
+            <option value="'Playfair Display', serif">Playfair Serif</option>
+            <option value="'Fira Code', monospace">Fira Code (Dev)</option>
+          </select>
+
+          <select id="font-size-select" title="Font Size for Selection">
+            <option value="1">12px (Small)</option>
+            <option value="3" selected>16px (Normal)</option>
+            <option value="4">20px (Medium)</option>
+            <option value="5">24px (Large)</option>
+            <option value="7">36px (Title)</option>
+          </select>
+        </div>
+
+        <div class="v-divider"></div>
+
+        <div class="color-picker-wrapper" title="Change Selected Text Color">
+          <i class="fa-solid fa-font"></i>
+          <input type="color" id="text-color-picker" value="#ffffff"/>
+        </div>
+
+        <div class="v-divider"></div>
+
+        <div class="highlight-picker">
+          <span class="tool-label"><i class="fa-solid fa-highlighter"></i></span>
+          <button class="hl-btn hl-none" data-color="transparent" title="Clear Highlight"></button>
+          <button class="hl-btn hl-yellow" data-color="#fef08a" title="Yellow"></button>
+          <button class="hl-btn hl-green" data-color="#bbf7d0" title="Green"></button>
+          <button class="hl-btn hl-blue" data-color="#bfdbfe" title="Blue"></button>
+          <button class="hl-btn hl-pink" data-color="#fbcfe8" title="Pink"></button>
+        </div>
+
+        <div class="v-divider"></div>
+
+        <div class="shapes-dropdown">
+          <button class="tool-btn"><i class="fa-solid fa-shapes"></i> Shape <i class="fa-solid fa-chevron-down"></i></button>
+          <div class="shapes-menu">
+            <button data-shape="[ ▭ Rectangle ]"><i class="fa-regular fa-square"></i> Rectangle</button>
+            <button data-shape="[ ◯ Circle ]"><i class="fa-regular fa-circle"></i> Circle</button>
+            <button data-shape="[ ➔ Arrow ]"><i class="fa-solid fa-arrow-right"></i> Arrow</button>
+            <button data-shape="[ ★ Star ]"><i class="fa-regular fa-star"></i> Star</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Rich Document Writing Canvas -->
+      <div id="pdf-printable-area" class="editor-content-container">
+        <input type="text" id="note-title" placeholder="Untitled Note Title..."/>
+        <div id="note-body" contenteditable="true" class="rich-editor-canvas" data-placeholder="Start typing your master ideas, documents, or code..."></div>
+        <div id="note-preview-box" class="preview-box hidden"></div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Quick Slide-Out Notes Drawer -->
+  <div id="notes-drawer" class="notes-drawer-overlay hidden">
+    <div class="notes-drawer-content">
+      <div class="drawer-header">
+        <div>
+          <h3 id="drawer-title">All Notes</h3>
+          <span id="drawer-count">0 Notes Saved</span>
+        </div>
+        <button id="btn-close-drawer" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="drawer-notes-container" class="drawer-notes-list"></div>
+    </div>
+  </div>
+
+  <!-- Floating AI Orb Assistant Button -->
+  <button id="ai-globe-btn" class="ai-globe-btn" title="Open AI Copilot">
+    <div class="globe-inner">
+      <i class="fa-solid fa-brain"></i>
+    </div>
+  </button>
+
+  <!-- Right Floating AI Agent Panel -->
+  <aside id="ai-agent-panel" class="ai-agent-panel closed">
+    <div class="ai-panel-header">
+      <div class="ai-title">
+        <i class="fa-solid fa-robot"></i>
+        <span> AI BUDDY </span>
+      </div>
+      <button id="btn-close-ai" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="ai-agent-body">
+      <div class="ai-tools-grid">
+        <button class="ai-action-btn" data-action="summarize"><i class="fa-solid fa-compress"></i> Summarize</button>
+        <button class="ai-action-btn" data-action="expand"><i class="fa-solid fa-expand"></i> Expand</button>
+        <button class="ai-action-btn" data-action="grammar"><i class="fa-solid fa-wand-magic-sparkles"></i> Polish</button>
+      </div>
+
+      <div class="ai-divider"><span>LIVE ASSISTANT CHAT</span></div>
+
+      <div id="ai-chat-box" class="ai-chat-box">
+        <div class="ai-message bot">
+          Hello! I am your AI Assistant. Select text or ask me anything to analyze, expand, or write content for your note!
+        </div>
+      </div>
+
+      <div class="ai-chat-input-container">
+        <input type="text" id="ai-chat-input" placeholder="Ask AI Assistant anything..."/>
+        <button id="btn-send-ai"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Alert -->
+  <div id="toast" class="toast hidden">Note Saved Successfully!</div>
+
+  <!-- Note the type="module" below -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
